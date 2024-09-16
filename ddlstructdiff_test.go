@@ -17,15 +17,20 @@ func TestAnalyzer(t *testing.T) {
 		ddl      string
 		patterns []string
 	}{
-		// {
-		// 	name:     "singer",
-		// 	ddl:      "testdata/src/singer/ddl.sql",
-		// 	patterns: []string{"singer"},
-		// },
+		{
+			name:     "singer",
+			ddl:      "testdata/src/singer/ddl.sql",
+			patterns: []string{"singer"},
+		},
 		{
 			name:     "withtags",
 			ddl:      "testdata/src/withtags/ddl.sql",
 			patterns: []string{"withtags"},
+		},
+		{
+			name:     "notable",
+			ddl:      "testdata/src/notable/ddl.sql",
+			patterns: []string{"notable"},
 		},
 	}
 	testdata := testutil.WithModules(t, analysistest.TestData(), nil)
