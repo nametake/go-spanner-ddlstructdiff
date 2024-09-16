@@ -3,6 +3,7 @@ package ddlstructdiff
 import (
 	"go/ast"
 	"os"
+	"strings"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
@@ -27,6 +28,21 @@ var (
 
 func init() {
 	Analyzer.Flags.StringVar(&ddlPath, "ddl", "", "ddl file path")
+}
+
+func spannerTag(field *ast.Field) string {
+	if field.Tag == nil {
+		return ""
+	}
+	tag := field.Tag.Value
+	tag = strings.Trim(tag, "`")
+	parts := strings.Split(tag, " ")
+	for _, part := range parts {
+		if strings.HasPrefix(part, `spanner:"`) {
+			return strings.Trim(part[len(`spanner:"`):], `"`)
+		}
+	}
+	return ""
 }
 
 func run(pass *analysis.Pass) (any, error) {
@@ -60,8 +76,17 @@ func run(pass *analysis.Pass) (any, error) {
 
 		st := NewStruct(typeSpec.Pos())
 		for _, field := range structType.Fields.List {
+			tag := spannerTag(field)
+			if tag != "" && len(field.Names) != 1 {
+				pass.Reportf(field.Pos(), "field with spanner tag must have only one name")
+				continue
+			}
 			for _, name := range field.Names {
-				st.AddField(name.Name, NewField())
+				n := name.Name
+				if tag != "" {
+					n = tag
+				}
+				st.AddField(n, NewField())
 			}
 		}
 

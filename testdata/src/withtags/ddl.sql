@@ -1,4 +1,4 @@
-CREATE TABLE singer (
+CREATE TABLE Singer (
   singer_id   INT64 NOT NULL,
   first_name  STRING(1024),
   last_name   STRING(1024),

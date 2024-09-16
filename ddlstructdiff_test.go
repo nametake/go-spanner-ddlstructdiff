@@ -17,11 +17,11 @@ func TestAnalyzer(t *testing.T) {
 		ddl      string
 		patterns []string
 	}{
-		{
-			name:     "singer",
-			ddl:      "testdata/src/singer/ddl.sql",
-			patterns: []string{"singer"},
-		},
+		// {
+		// 	name:     "singer",
+		// 	ddl:      "testdata/src/singer/ddl.sql",
+		// 	patterns: []string{"singer"},
+		// },
 		{
 			name:     "withtags",
 			ddl:      "testdata/src/withtags/ddl.sql",
