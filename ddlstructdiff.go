@@ -1,7 +1,6 @@
 package ddlstructdiff
 
 import (
-	"fmt"
 	"go/ast"
 	"os"
 
@@ -42,8 +41,6 @@ func run(pass *analysis.Pass) (any, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	fmt.Println(ddl)
 
 	nodeFilter := []ast.Node{
 		(*ast.TypeSpec)(nil),
