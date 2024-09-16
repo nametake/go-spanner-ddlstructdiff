@@ -8,6 +8,7 @@ require (
 )
 
 require (
+	github.com/cloudspannerecosystem/memefish v0.0.0-20240821055308-7005cc7f352c // indirect
 	github.com/hashicorp/go-version v1.2.1 // indirect
 	github.com/otiai10/copy v1.2.0 // indirect
 	github.com/tenntenn/modver v1.0.1 // indirect

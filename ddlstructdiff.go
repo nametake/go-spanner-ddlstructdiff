@@ -1,7 +1,9 @@
 package ddlstructdiff
 
 import (
+	"fmt"
 	"go/ast"
+	"os"
 
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
@@ -30,6 +32,18 @@ func init() {
 
 func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
+
+	ddlFile, err := os.Open(ddlPath)
+	if err != nil {
+		return nil, err
+	}
+
+	ddl, err := loadDDL(ddlFile)
+	if err != nil {
+		return nil, err
+	}
+
+	fmt.Println(ddl)
 
 	nodeFilter := []ast.Node{
 		(*ast.Ident)(nil),
