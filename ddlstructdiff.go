@@ -70,14 +70,18 @@ func run(pass *analysis.Pass) (any, error) {
 
 		structs.AddStruct(typeSpec.Name.Name, st)
 
-		fmt.Printf("%#v", structs)
-		// table, ok := ddl.Table(typeSpec.Name.Name)
-		// if !ok {
-		// 	return
-		// }
-		//
-		// fmt.Println(structType)
-		// fmt.Println(table)
+		for table, columns := range ddl {
+			s, ok := structs[table]
+			if !ok {
+				return
+			}
+			for column := range columns {
+				_, ok := s[column]
+				if !ok {
+					pass.Reportf(typeSpec.Pos(), fmt.Sprintf("%s struct must contain %s field corresponding to DDL", table, column))
+				}
+			}
+		}
 	})
 
 	return nil, nil
