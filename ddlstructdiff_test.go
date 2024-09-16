@@ -1,6 +1,7 @@
 package ddlstructdiff_test
 
 import (
+	"path/filepath"
 	"testing"
 
 	"github.com/nametake/ddlstructdiff"
@@ -11,6 +12,30 @@ import (
 
 // TestAnalyzer is a test for Analyzer.
 func TestAnalyzer(t *testing.T) {
+	tests := []struct {
+		name     string
+		ddl      string
+		patterns []string
+	}{
+		{
+			name:     "singer",
+			ddl:      "testdata/src/singer/ddl.sql",
+			patterns: []string{"singer"},
+		},
+	}
 	testdata := testutil.WithModules(t, analysistest.TestData(), nil)
-	analysistest.Run(t, testdata, ddlstructdiff.Analyzer, "a")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			defaultPath, err := filepath.Abs(tt.ddl)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			if err := ddlstructdiff.Analyzer.Flags.Set("ddl", defaultPath); err != nil {
+				t.Error(err)
+				return
+			}
+			analysistest.Run(t, testdata, ddlstructdiff.Analyzer, tt.patterns...)
+		})
+	}
 }
