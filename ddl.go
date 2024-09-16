@@ -32,19 +32,6 @@ func (d DDL) Table(table string) (Table, bool) {
 	return t, ok
 }
 
-func (d DDL) HasTable(table string) bool {
-	_, ok := d[table]
-	return ok
-}
-
-func (d DDL) HasColumn(table, column string) bool {
-	if _, ok := d[table]; !ok {
-		return false
-	}
-	_, ok := d[table][column]
-	return ok
-}
-
 func loadDDL(r io.Reader) (DDL, error) {
 	ddlReader, err := io.ReadAll(r)
 	if err != nil {
