@@ -1,13 +1,21 @@
 package ddlstructdiff
 
+import "go/token"
+
 type Field struct{}
 
+func NewField() *Field {
+	return &Field{}
+}
+
 type Struct struct {
+	Pos    token.Pos
 	Fields map[string]*Field
 }
 
-func NewStruct() *Struct {
+func NewStruct(pos token.Pos) *Struct {
 	return &Struct{
+		Pos:    pos,
 		Fields: map[string]*Field{},
 	}
 }

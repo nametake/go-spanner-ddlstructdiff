@@ -58,28 +58,28 @@ func run(pass *analysis.Pass) (any, error) {
 			return
 		}
 
-		st := NewStruct()
+		st := NewStruct(typeSpec.Pos())
 		for _, field := range structType.Fields.List {
 			for _, name := range field.Names {
-				st.AddField(name.Name, &Field{})
+				st.AddField(name.Name, NewField())
 			}
 		}
 
 		structs.AddStruct(typeSpec.Name.Name, st)
+	})
 
-		for table, columns := range ddl {
-			s, ok := structs.Struct(table)
+	for table, columns := range ddl {
+		s, ok := structs.Struct(table)
+		if !ok {
+			continue
+		}
+		for column := range columns {
+			_, ok := s.Field(column)
 			if !ok {
-				return
-			}
-			for column := range columns {
-				_, ok := s.Field(column)
-				if !ok {
-					pass.Reportf(typeSpec.Pos(), "%s struct must contain %s field corresponding to DDL", table, column)
-				}
+				pass.Reportf(s.Pos, "%s struct must contain %s field corresponding to DDL", table, column)
 			}
 		}
-	})
+	}
 
 	return nil, nil
 }
