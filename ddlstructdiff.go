@@ -20,6 +20,14 @@ var Analyzer = &analysis.Analyzer{
 	},
 }
 
+var (
+	ddlPath string
+)
+
+func init() {
+	Analyzer.Flags.StringVar(&ddlPath, "ddl", "", "ddl file path")
+}
+
 func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
