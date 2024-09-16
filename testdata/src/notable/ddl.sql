@@ -1,6 +1,6 @@
 CREATE TABLE Singer (
-  singer_id   INT64 NOT NULL,
-  first_name  STRING(1024),
-  last_name   STRING(1024),
-  singer_info BYTES(MAX),
-) PRIMARY KEY (singer_id);
+  SingerId   INT64 NOT NULL,
+  FirstName  STRING(1024),
+  LastName   STRING(1024),
+  SingerInfo BYTES(MAX),
+) PRIMARY KEY (SingerId);
