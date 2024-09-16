@@ -22,6 +22,11 @@ func TestAnalyzer(t *testing.T) {
 			ddl:      "testdata/src/singer/ddl.sql",
 			patterns: []string{"singer"},
 		},
+		{
+			name:     "withtags",
+			ddl:      "testdata/src/withtags/ddl.sql",
+			patterns: []string{"withtags"},
+		},
 	}
 	testdata := testutil.WithModules(t, analysistest.TestData(), nil)
 	for _, tt := range tests {
