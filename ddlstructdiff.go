@@ -78,7 +78,7 @@ func run(pass *analysis.Pass) (any, error) {
 			for column := range columns {
 				_, ok := s[column]
 				if !ok {
-					pass.Reportf(typeSpec.Pos(), fmt.Sprintf("%s struct must contain %s field corresponding to DDL", table, column))
+					pass.Reportf(typeSpec.Pos(), "%s struct must contain %s field corresponding to DDL", table, column)
 				}
 			}
 		}
