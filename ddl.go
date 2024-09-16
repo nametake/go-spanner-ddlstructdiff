@@ -9,13 +9,27 @@ import (
 	"github.com/cloudspannerecosystem/memefish/token"
 )
 
-type DDL map[string]map[string]struct{}
+type Column struct{}
+
+type Table map[string]*Column
+
+func (t Table) Column(column string) (*Column, bool) {
+	c, ok := t[column]
+	return c, ok
+}
+
+type DDL map[string]Table
 
 func (d DDL) Add(table, column string) {
 	if _, ok := d[table]; !ok {
-		d[table] = make(map[string]struct{})
+		d[table] = make(map[string]*Column)
 	}
-	d[table][column] = struct{}{}
+	d[table][column] = &Column{}
+}
+
+func (d DDL) Table(table string) (Table, bool) {
+	t, ok := d[table]
+	return t, ok
 }
 
 func (d DDL) HasTable(table string) bool {

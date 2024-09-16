@@ -46,16 +46,27 @@ func run(pass *analysis.Pass) (any, error) {
 	fmt.Println(ddl)
 
 	nodeFilter := []ast.Node{
-		(*ast.Ident)(nil),
+		(*ast.TypeSpec)(nil),
 	}
 
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
-		switch n := n.(type) {
-		case *ast.Ident:
-			if n.Name == "gopher" {
-				pass.Reportf(n.Pos(), "identifier is gopher")
-			}
+		ts, ok := n.(*ast.TypeSpec)
+		if !ok {
+			return
 		}
+
+		st, ok := ts.Type.(*ast.StructType)
+		if !ok {
+			return
+		}
+
+		table, ok := ddl.Table(ts.Name.Name)
+		if !ok {
+			return
+		}
+
+		fmt.Println(st)
+		fmt.Println(table)
 	})
 
 	return nil, nil
