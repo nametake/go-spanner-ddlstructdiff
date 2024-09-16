@@ -26,3 +26,8 @@ func NewEmptyStructs() Structs {
 func (s Structs) AddStruct(name string, st Struct) {
 	s[name] = st
 }
+
+func (s Structs) Struct(name string) (Struct, bool) {
+	st, ok := s[name]
+	return st, ok
+}

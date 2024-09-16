@@ -68,12 +68,12 @@ func run(pass *analysis.Pass) (any, error) {
 		structs.AddStruct(typeSpec.Name.Name, st)
 
 		for table, columns := range ddl {
-			s, ok := structs[table]
+			s, ok := structs.Struct(table)
 			if !ok {
 				return
 			}
 			for column := range columns {
-				_, ok := s[column]
+				_, ok := s.Field(column)
 				if !ok {
 					pass.Reportf(typeSpec.Pos(), "%s struct must contain %s field corresponding to DDL", table, column)
 				}
