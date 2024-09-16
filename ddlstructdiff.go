@@ -49,24 +49,35 @@ func run(pass *analysis.Pass) (any, error) {
 		(*ast.TypeSpec)(nil),
 	}
 
+	structs := NewEmptyStructs()
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
-		ts, ok := n.(*ast.TypeSpec)
+		typeSpec, ok := n.(*ast.TypeSpec)
 		if !ok {
 			return
 		}
 
-		st, ok := ts.Type.(*ast.StructType)
+		structType, ok := typeSpec.Type.(*ast.StructType)
 		if !ok {
 			return
 		}
 
-		table, ok := ddl.Table(ts.Name.Name)
-		if !ok {
-			return
+		st := NewEmptyStruct()
+		for _, field := range structType.Fields.List {
+			for _, name := range field.Names {
+				st.AddField(name.Name, &Field{})
+			}
 		}
 
-		fmt.Println(st)
-		fmt.Println(table)
+		structs.AddStruct(typeSpec.Name.Name, st)
+
+		fmt.Printf("%#v", structs)
+		// table, ok := ddl.Table(typeSpec.Name.Name)
+		// if !ok {
+		// 	return
+		// }
+		//
+		// fmt.Println(structType)
+		// fmt.Println(table)
 	})
 
 	return nil, nil
