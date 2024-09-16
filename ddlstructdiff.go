@@ -46,7 +46,7 @@ func run(pass *analysis.Pass) (any, error) {
 		(*ast.TypeSpec)(nil),
 	}
 
-	structs := NewEmptyStructs()
+	structs := NewStructs()
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
 		typeSpec, ok := n.(*ast.TypeSpec)
 		if !ok {
@@ -58,7 +58,7 @@ func run(pass *analysis.Pass) (any, error) {
 			return
 		}
 
-		st := NewEmptyStruct()
+		st := NewStruct()
 		for _, field := range structType.Fields.List {
 			for _, name := range field.Names {
 				st.AddField(name.Name, &Field{})

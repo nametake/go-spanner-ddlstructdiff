@@ -4,7 +4,7 @@ type Field struct{}
 
 type Struct map[string]*Field
 
-func NewEmptyStruct() Struct {
+func NewStruct() Struct {
 	return make(Struct)
 }
 
@@ -19,7 +19,7 @@ func (s Struct) AddField(field string, f *Field) {
 
 type Structs map[string]Struct
 
-func NewEmptyStructs() Structs {
+func NewStructs() Structs {
 	return make(Structs)
 }
 
