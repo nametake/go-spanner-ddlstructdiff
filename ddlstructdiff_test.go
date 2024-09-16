@@ -18,9 +18,9 @@ func TestAnalyzer(t *testing.T) {
 		patterns []string
 	}{
 		{
-			name:     "singer",
-			ddl:      "testdata/src/singer/ddl.sql",
-			patterns: []string{"singer"},
+			name:     "nofield",
+			ddl:      "testdata/src/nofield/ddl.sql",
+			patterns: []string{"nofield"},
 		},
 		{
 			name:     "withtags",
