@@ -27,6 +27,11 @@ func TestAnalyzer(t *testing.T) {
 			ddl:      "testdata/src/withtags/ddl.sql",
 			patterns: []string{"withtags"},
 		},
+		{
+			name:     "nocolumn",
+			ddl:      "testdata/src/nocolumn/ddl.sql",
+			patterns: []string{"nocolumn"},
+		},
 		// TODO: token.NoPos is not supported in analysistest
 		// {
 		// 	name:     "notable",

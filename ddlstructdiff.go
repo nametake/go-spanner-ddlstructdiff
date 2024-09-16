@@ -94,16 +94,20 @@ func run(pass *analysis.Pass) (any, error) {
 		structs.AddStruct(typeSpec.Name.Name, st)
 	})
 
-	for table, columns := range ddl {
-		s, ok := structs.Struct(table)
+	for tableName, table := range ddl {
+		s, ok := structs.Struct(tableName)
 		if !ok {
-			pass.Reportf(token.NoPos, "%s struct corresponding to %s table not found", table, table)
+			pass.Reportf(token.NoPos, "%s struct corresponding to %s table not found", tableName, tableName)
 			continue
 		}
-		for column := range columns {
-			_, ok := s.Field(column)
-			if !ok {
-				pass.Reportf(s.Pos, "%s struct must contain %s field corresponding to DDL", table, column)
+		for column := range table {
+			if _, ok := s.Field(column); !ok {
+				pass.Reportf(s.Pos, "%s struct must contain %s field corresponding to DDL", tableName, column)
+			}
+		}
+		for field := range s.Fields {
+			if _, ok := table.Column(field); !ok {
+				pass.Reportf(s.Pos, "%s table does not have a column corresponding to %s", tableName, field)
 			}
 		}
 	}
