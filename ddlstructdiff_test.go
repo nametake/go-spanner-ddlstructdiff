@@ -3,7 +3,7 @@ package ddlstructdiff_test
 import (
 	"testing"
 
-	"ddlstructdiff"
+	"github.com/nametake/ddlstructdiff"
 
 	"github.com/gostaticanalysis/testutil"
 	"golang.org/x/tools/go/analysis/analysistest"
