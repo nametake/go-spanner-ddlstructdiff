@@ -4,7 +4,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/nametake/ddlstructdiff"
+	ddlstructdiff "github.com/nametake/go-spanner-ddlstructdiff"
 
 	"github.com/gostaticanalysis/testutil"
 	"golang.org/x/tools/go/analysis/analysistest"
