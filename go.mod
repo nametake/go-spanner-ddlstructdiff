@@ -1,4 +1,4 @@
-module github.com/nametake/ddlstructdiff
+module github.com/nametake/go-spanner-ddlstructdiff
 
 go 1.23
 

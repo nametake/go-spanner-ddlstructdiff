@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/nametake/ddlstructdiff"
+	ddlstructdiff "github.com/nametake/go-spanner-ddlstructdiff"
 	"golang.org/x/tools/go/analysis/unitchecker"
 )
 
