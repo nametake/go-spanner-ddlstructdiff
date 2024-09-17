@@ -2,7 +2,6 @@ package ddlstructdiff
 
 import (
 	"go/ast"
-	"go/token"
 	"os"
 	"strings"
 
@@ -97,7 +96,8 @@ func run(pass *analysis.Pass) (any, error) {
 	for tableName, table := range ddl {
 		s, ok := structs.Struct(tableName)
 		if !ok {
-			pass.Reportf(token.NoPos, "%s struct corresponding to %s table not found", tableName, tableName)
+			// TODO set option
+			// pass.Reportf(token.NoPos, "%s struct corresponding to %s table not found", tableName, tableName)
 			continue
 		}
 		for column := range table {
