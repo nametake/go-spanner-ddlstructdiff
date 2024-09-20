@@ -100,12 +100,12 @@ func run(pass *analysis.Pass) (any, error) {
 			// pass.Reportf(token.NoPos, "%s struct corresponding to %s table not found", tableName, tableName)
 			continue
 		}
-		for _, column := range table {
+		for _, column := range table.Columns() {
 			if _, ok := s.Field(column.LowerName()); !ok {
 				pass.Reportf(s.Pos, "%s struct must contain %s field corresponding to DDL", tableName, column.Name)
 			}
 		}
-		for _, field := range s.Fields {
+		for _, field := range s.Fields() {
 			if _, ok := table.Column(field.LowerName()); !ok {
 				pass.Reportf(s.Pos, "%s table does not have a column corresponding to %s", tableName, field.Name)
 			}

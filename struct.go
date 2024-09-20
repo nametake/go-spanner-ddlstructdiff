@@ -20,24 +20,31 @@ func (f *Field) LowerName() string {
 }
 
 type Struct struct {
-	Pos    token.Pos
-	Fields map[string]*Field
+	Pos token.Pos
+	s   []*Field
+	m   map[string]*Field
 }
 
 func NewStruct(pos token.Pos) *Struct {
 	return &Struct{
-		Pos:    pos,
-		Fields: map[string]*Field{},
+		Pos: pos,
+		s:   []*Field{},
+		m:   map[string]*Field{},
 	}
 }
 
+func (s *Struct) Fields() []*Field {
+	return s.s
+}
+
 func (s *Struct) Field(field string) (*Field, bool) {
-	f, ok := s.Fields[field]
+	f, ok := s.m[field]
 	return f, ok
 }
 
 func (s *Struct) AddField(f *Field) {
-	s.Fields[f.LowerName()] = f
+	s.s = append(s.s, f)
+	s.m[f.LowerName()] = f
 }
 
 type Structs map[string]*Struct

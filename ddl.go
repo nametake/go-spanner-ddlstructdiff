@@ -24,25 +24,33 @@ func (c *Column) LowerName() string {
 	return strings.ToLower(c.Name)
 }
 
-type Table map[string]*Column
+type Table struct {
+	s []*Column
+	m map[string]*Column
+}
 
-func (t Table) Column(column string) (*Column, bool) {
-	c, ok := t[column]
+func NewTable() Table {
+	return Table{
+		s: []*Column{},
+		m: map[string]*Column{},
+	}
+}
+
+func (t *Table) Columns() []*Column {
+	return t.s
+}
+
+func (t *Table) Column(column string) (*Column, bool) {
+	c, ok := t.m[column]
 	return c, ok
 }
 
-func (t Table) AddColumn(c *Column) {
-	t[c.LowerName()] = c
+func (t *Table) AddColumn(c *Column) {
+	t.s = append(t.s, c)
+	t.m[c.LowerName()] = c
 }
 
 type DDL map[string]Table
-
-func (d DDL) Add(table string, column *Column) {
-	if _, ok := d[table]; !ok {
-		d[table] = make(map[string]*Column)
-	}
-	d[table][column.LowerName()] = &Column{}
-}
 
 func (d DDL) Table(table string) (Table, bool) {
 	t, ok := d[table]
@@ -78,7 +86,7 @@ func loadDDL(r io.Reader) (DDL, error) {
 		if !ok {
 			continue
 		}
-		table := Table{}
+		table := NewTable()
 		for _, c := range ct.Columns {
 			table.AddColumn(NewColumn(c.Name.Name))
 		}
