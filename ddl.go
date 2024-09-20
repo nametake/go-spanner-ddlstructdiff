@@ -24,14 +24,18 @@ func (c *Column) Name() string {
 	return strings.ToLower(c.name)
 }
 
+func (c *Column) OriginalName() string {
+	return c.name
+}
+
 type Table struct {
 	name string
 	s    []*Column
 	m    map[string]*Column
 }
 
-func NewTable(name string) Table {
-	return Table{
+func NewTable(name string) *Table {
+	return &Table{
 		name: name,
 		s:    []*Column{},
 		m:    map[string]*Column{},
@@ -40,6 +44,10 @@ func NewTable(name string) Table {
 
 func (t *Table) Name() string {
 	return strings.ToLower(t.name)
+}
+
+func (t *Table) OriginalName() string {
+	return t.name
 }
 
 func (t *Table) Columns() []*Column {
@@ -58,22 +66,27 @@ func (t *Table) AddColumn(c *Column) {
 
 type DDL struct {
 	s []*Table
-	m map[string]Table
+	m map[string]*Table
 }
 
 func NewDDL() *DDL {
 	return &DDL{
 		s: []*Table{},
-		m: map[string]Table{},
+		m: map[string]*Table{},
 	}
 }
 
-func (d *DDL) Table(table string) (Table, bool) {
+func (d *DDL) Table(table string) (*Table, bool) {
 	t, ok := d.m[table]
 	return t, ok
 }
 
-func (d DDL) AddTable(t Table) {
+func (d *DDL) Tables() []*Table {
+	return d.s
+}
+
+func (d *DDL) AddTable(t *Table) {
+	d.s = append(d.s, t)
 	d.m[t.Name()] = t
 }
 

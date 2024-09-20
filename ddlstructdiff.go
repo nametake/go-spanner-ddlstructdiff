@@ -74,7 +74,7 @@ func run(pass *analysis.Pass) (any, error) {
 			return
 		}
 
-		st := NewStruct(typeSpec.Pos())
+		st := NewStruct(typeSpec.Name.Name, typeSpec.Pos())
 		for _, field := range structType.Fields.List {
 			tag := spannerTag(field)
 			if tag != "" && len(field.Names) != 1 {
@@ -89,25 +89,25 @@ func run(pass *analysis.Pass) (any, error) {
 				st.AddField(NewField(n))
 			}
 		}
-
-		structs.AddStruct(typeSpec.Name.Name, st)
+		structs.AddStruct(st)
 	})
 
-	for tableName, table := range ddl {
-		s, ok := structs.Struct(tableName)
+	for _, table := range ddl.Tables() {
+		st, ok := structs.Struct(table.Name())
 		if !ok {
 			// TODO set option
 			// pass.Reportf(token.NoPos, "%s struct corresponding to %s table not found", tableName, tableName)
 			continue
 		}
+
 		for _, column := range table.Columns() {
-			if _, ok := s.Field(column.Name()); !ok {
-				pass.Reportf(s.Pos, "%s struct must contain %s field corresponding to DDL", tableName, column.name)
+			if _, ok := st.Field(column.Name()); !ok {
+				pass.Reportf(st.Pos(), "%s struct must contain %s field corresponding to DDL", table.OriginalName(), column.OriginalName())
 			}
 		}
-		for _, field := range s.Fields() {
+		for _, field := range st.Fields() {
 			if _, ok := table.Column(field.Name()); !ok {
-				pass.Reportf(s.Pos, "%s table does not have a column corresponding to %s", tableName, field.name)
+				pass.Reportf(st.Pos(), "%s table does not have a column corresponding to %s", table.OriginalName(), field.OriginalName())
 			}
 		}
 	}
