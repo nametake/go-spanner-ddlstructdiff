@@ -1,11 +1,22 @@
 package ddlstructdiff
 
-import "go/token"
+import (
+	"go/token"
+	"strings"
+)
 
-type Field struct{}
+type Field struct {
+	Name string
+}
 
-func NewField() *Field {
-	return &Field{}
+func NewField(name string) *Field {
+	return &Field{
+		Name: name,
+	}
+}
+
+func (f *Field) LowerName() string {
+	return strings.ToLower(f.Name)
 }
 
 type Struct struct {
@@ -25,8 +36,8 @@ func (s *Struct) Field(field string) (*Field, bool) {
 	return f, ok
 }
 
-func (s *Struct) AddField(field string, f *Field) {
-	s.Fields[field] = f
+func (s *Struct) AddField(f *Field) {
+	s.Fields[f.LowerName()] = f
 }
 
 type Structs map[string]*Struct

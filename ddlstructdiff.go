@@ -86,7 +86,7 @@ func run(pass *analysis.Pass) (any, error) {
 				if tag != "" {
 					n = tag
 				}
-				st.AddField(n, NewField())
+				st.AddField(NewField(n))
 			}
 		}
 
@@ -100,14 +100,14 @@ func run(pass *analysis.Pass) (any, error) {
 			// pass.Reportf(token.NoPos, "%s struct corresponding to %s table not found", tableName, tableName)
 			continue
 		}
-		for column := range table {
-			if _, ok := s.Field(column); !ok {
-				pass.Reportf(s.Pos, "%s struct must contain %s field corresponding to DDL", tableName, column)
+		for _, column := range table {
+			if _, ok := s.Field(column.LowerName()); !ok {
+				pass.Reportf(s.Pos, "%s struct must contain %s field corresponding to DDL", tableName, column.Name)
 			}
 		}
-		for field := range s.Fields {
-			if _, ok := table.Column(field); !ok {
-				pass.Reportf(s.Pos, "%s table does not have a column corresponding to %s", tableName, field)
+		for _, field := range s.Fields {
+			if _, ok := table.Column(field.LowerName()); !ok {
+				pass.Reportf(s.Pos, "%s table does not have a column corresponding to %s", tableName, field.Name)
 			}
 		}
 	}
