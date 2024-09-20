@@ -101,13 +101,13 @@ func run(pass *analysis.Pass) (any, error) {
 			continue
 		}
 		for _, column := range table.Columns() {
-			if _, ok := s.Field(column.LowerName()); !ok {
-				pass.Reportf(s.Pos, "%s struct must contain %s field corresponding to DDL", tableName, column.Name)
+			if _, ok := s.Field(column.Name()); !ok {
+				pass.Reportf(s.Pos, "%s struct must contain %s field corresponding to DDL", tableName, column.name)
 			}
 		}
 		for _, field := range s.Fields() {
-			if _, ok := table.Column(field.LowerName()); !ok {
-				pass.Reportf(s.Pos, "%s table does not have a column corresponding to %s", tableName, field.Name)
+			if _, ok := table.Column(field.Name()); !ok {
+				pass.Reportf(s.Pos, "%s table does not have a column corresponding to %s", tableName, field.name)
 			}
 		}
 	}

@@ -11,17 +11,17 @@ import (
 )
 
 type Column struct {
-	Name string
+	name string
 }
 
 func NewColumn(name string) *Column {
 	return &Column{
-		Name: name,
+		name: name,
 	}
 }
 
-func (c *Column) LowerName() string {
-	return strings.ToLower(c.Name)
+func (c *Column) Name() string {
+	return strings.ToLower(c.name)
 }
 
 type Table struct {
@@ -47,7 +47,7 @@ func (t *Table) Column(column string) (*Column, bool) {
 
 func (t *Table) AddColumn(c *Column) {
 	t.s = append(t.s, c)
-	t.m[c.LowerName()] = c
+	t.m[c.Name()] = c
 }
 
 type DDL map[string]Table

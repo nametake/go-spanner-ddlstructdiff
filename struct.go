@@ -6,17 +6,17 @@ import (
 )
 
 type Field struct {
-	Name string
+	name string
 }
 
 func NewField(name string) *Field {
 	return &Field{
-		Name: name,
+		name: name,
 	}
 }
 
-func (f *Field) LowerName() string {
-	return strings.ToLower(f.Name)
+func (f *Field) Name() string {
+	return strings.ToLower(f.name)
 }
 
 type Struct struct {
@@ -44,7 +44,7 @@ func (s *Struct) Field(field string) (*Field, bool) {
 
 func (s *Struct) AddField(f *Field) {
 	s.s = append(s.s, f)
-	s.m[f.LowerName()] = f
+	s.m[f.Name()] = f
 }
 
 type Structs map[string]*Struct
