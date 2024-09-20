@@ -25,15 +25,21 @@ func (c *Column) Name() string {
 }
 
 type Table struct {
-	s []*Column
-	m map[string]*Column
+	name string
+	s    []*Column
+	m    map[string]*Column
 }
 
-func NewTable() Table {
+func NewTable(name string) Table {
 	return Table{
-		s: []*Column{},
-		m: map[string]*Column{},
+		name: name,
+		s:    []*Column{},
+		m:    map[string]*Column{},
 	}
+}
+
+func (t *Table) Name() string {
+	return strings.ToLower(t.name)
 }
 
 func (t *Table) Columns() []*Column {
@@ -50,18 +56,28 @@ func (t *Table) AddColumn(c *Column) {
 	t.m[c.Name()] = c
 }
 
-type DDL map[string]Table
+type DDL struct {
+	s []*Table
+	m map[string]Table
+}
 
-func (d DDL) Table(table string) (Table, bool) {
-	t, ok := d[table]
+func NewDDL() *DDL {
+	return &DDL{
+		s: []*Table{},
+		m: map[string]Table{},
+	}
+}
+
+func (d *DDL) Table(table string) (Table, bool) {
+	t, ok := d.m[table]
 	return t, ok
 }
 
-func (d DDL) AddTable(k string, t Table) {
-	d[k] = t
+func (d DDL) AddTable(t Table) {
+	d.m[t.Name()] = t
 }
 
-func loadDDL(r io.Reader) (DDL, error) {
+func loadDDL(r io.Reader) (*DDL, error) {
 	ddlReader, err := io.ReadAll(r)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read SQL file: %w", err)
@@ -80,17 +96,17 @@ func loadDDL(r io.Reader) (DDL, error) {
 		return nil, fmt.Errorf("failed to parse DDL: %w", err)
 	}
 
-	ddl := DDL{}
+	ddl := NewDDL()
 	for _, s := range stmt {
 		ct, ok := s.(*ast.CreateTable)
 		if !ok {
 			continue
 		}
-		table := NewTable()
+		table := NewTable(ct.Name.Name)
 		for _, c := range ct.Columns {
 			table.AddColumn(NewColumn(c.Name.Name))
 		}
-		ddl.AddTable(ct.Name.Name, table)
+		ddl.AddTable(table)
 	}
 
 	return ddl, nil
