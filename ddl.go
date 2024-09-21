@@ -3,6 +3,7 @@ package ddlstructdiff
 import (
 	"fmt"
 	"io"
+	"os"
 	"strings"
 
 	"github.com/cloudspannerecosystem/memefish"
@@ -90,14 +91,20 @@ func (d *DDL) AddTable(t *Table) {
 	d.m[t.Name()] = t
 }
 
-func loadDDL(r io.Reader) (*DDL, error) {
-	ddlReader, err := io.ReadAll(r)
+func loadDDL(ddlPath string) (*DDL, error) {
+	ddlFile, err := os.Open(ddlPath)
+	if err != nil {
+		return nil, err
+	}
+
+	ddlReader, err := io.ReadAll(ddlFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read SQL file: %w", err)
 	}
 
 	file := &token.File{
-		Buffer: string(ddlReader),
+		Buffer:   string(ddlReader),
+		FilePath: ddlPath,
 	}
 
 	p := memefish.Parser{

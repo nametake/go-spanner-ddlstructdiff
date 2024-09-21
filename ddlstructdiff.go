@@ -2,7 +2,6 @@ package ddlstructdiff
 
 import (
 	"go/ast"
-	"os"
 	"strings"
 
 	"golang.org/x/tools/go/analysis"
@@ -48,12 +47,7 @@ func spannerTag(field *ast.Field) string {
 func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
-	ddlFile, err := os.Open(ddlPath)
-	if err != nil {
-		return nil, err
-	}
-
-	ddl, err := loadDDL(ddlFile)
+	ddl, err := loadDDL(ddlPath)
 	if err != nil {
 		return nil, err
 	}
