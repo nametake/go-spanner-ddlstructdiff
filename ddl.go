@@ -3,43 +3,108 @@ package ddlstructdiff
 import (
 	"fmt"
 	"io"
+	"os"
+	"strings"
 
 	"github.com/cloudspannerecosystem/memefish"
 	"github.com/cloudspannerecosystem/memefish/ast"
 	"github.com/cloudspannerecosystem/memefish/token"
 )
 
-type Column struct{}
+type Column struct {
+	name string
+}
 
-type Table map[string]*Column
+func NewColumn(name string) *Column {
+	return &Column{
+		name: name,
+	}
+}
 
-func (t Table) Column(column string) (*Column, bool) {
-	c, ok := t[column]
+func (c *Column) Name() string {
+	return strings.ToLower(c.name)
+}
+
+func (c *Column) OriginalName() string {
+	return c.name
+}
+
+type Table struct {
+	name string
+	s    []*Column
+	m    map[string]*Column
+}
+
+func NewTable(name string) *Table {
+	return &Table{
+		name: name,
+		s:    []*Column{},
+		m:    map[string]*Column{},
+	}
+}
+
+func (t *Table) Name() string {
+	return strings.ToLower(t.name)
+}
+
+func (t *Table) OriginalName() string {
+	return t.name
+}
+
+func (t *Table) Columns() []*Column {
+	return t.s
+}
+
+func (t *Table) Column(column string) (*Column, bool) {
+	c, ok := t.m[column]
 	return c, ok
 }
 
-type DDL map[string]Table
-
-func (d DDL) Add(table, column string) {
-	if _, ok := d[table]; !ok {
-		d[table] = make(map[string]*Column)
-	}
-	d[table][column] = &Column{}
+func (t *Table) AddColumn(c *Column) {
+	t.s = append(t.s, c)
+	t.m[c.Name()] = c
 }
 
-func (d DDL) Table(table string) (Table, bool) {
-	t, ok := d[table]
+type DDL struct {
+	s []*Table
+	m map[string]*Table
+}
+
+func NewDDL() *DDL {
+	return &DDL{
+		s: []*Table{},
+		m: map[string]*Table{},
+	}
+}
+
+func (d *DDL) Table(table string) (*Table, bool) {
+	t, ok := d.m[table]
 	return t, ok
 }
 
-func loadDDL(r io.Reader) (DDL, error) {
-	ddlReader, err := io.ReadAll(r)
+func (d *DDL) Tables() []*Table {
+	return d.s
+}
+
+func (d *DDL) AddTable(t *Table) {
+	d.s = append(d.s, t)
+	d.m[t.Name()] = t
+}
+
+func loadDDL(ddlPath string) (*DDL, error) {
+	ddlFile, err := os.Open(ddlPath)
+	if err != nil {
+		return nil, err
+	}
+
+	ddlReader, err := io.ReadAll(ddlFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read SQL file: %w", err)
 	}
 
 	file := &token.File{
-		Buffer: string(ddlReader),
+		Buffer:   string(ddlReader),
+		FilePath: ddlPath,
 	}
 
 	p := memefish.Parser{
@@ -51,15 +116,17 @@ func loadDDL(r io.Reader) (DDL, error) {
 		return nil, fmt.Errorf("failed to parse DDL: %w", err)
 	}
 
-	ddl := DDL{}
+	ddl := NewDDL()
 	for _, s := range stmt {
 		ct, ok := s.(*ast.CreateTable)
 		if !ok {
 			continue
 		}
+		table := NewTable(ct.Name.Name)
 		for _, c := range ct.Columns {
-			ddl.Add(ct.Name.Name, c.Name.Name)
+			table.AddColumn(NewColumn(c.Name.Name))
 		}
+		ddl.AddTable(table)
 	}
 
 	return ddl, nil
