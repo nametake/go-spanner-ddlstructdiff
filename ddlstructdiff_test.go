@@ -15,27 +15,38 @@ func TestAnalyzer(t *testing.T) {
 	tests := []struct {
 		name     string
 		ddl      string
+		strict   bool
 		patterns []string
 	}{
 		{
 			name:     "nofield",
 			ddl:      "testdata/src/nofield/ddl.sql",
+			strict:   false,
 			patterns: []string{"nofield"},
 		},
 		{
 			name:     "withtags",
 			ddl:      "testdata/src/withtags/ddl.sql",
+			strict:   false,
 			patterns: []string{"withtags"},
 		},
 		{
 			name:     "nocolumn",
 			ddl:      "testdata/src/nocolumn/ddl.sql",
+			strict:   false,
 			patterns: []string{"nocolumn"},
 		},
 		{
 			name:     "lowercase",
 			ddl:      "testdata/src/lowercase/ddl.sql",
+			strict:   false,
 			patterns: []string{"lowercase"},
+		},
+		{
+			name:     "lowercasestrict",
+			ddl:      "testdata/src/lowercasestrict/ddl.sql",
+			strict:   true,
+			patterns: []string{"lowercasestrict"},
 		},
 		// TODO: token.NoPos is not supported in analysistest
 		// {
@@ -56,6 +67,13 @@ func TestAnalyzer(t *testing.T) {
 				t.Error(err)
 				return
 			}
+			if tt.strict {
+				if err := ddlstructdiff.Analyzer.Flags.Set("strict", "true"); err != nil {
+					t.Error(err)
+					return
+				}
+			}
+
 			analysistest.Run(t, testdata, ddlstructdiff.Analyzer, tt.patterns...)
 		})
 	}

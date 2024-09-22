@@ -23,10 +23,12 @@ var Analyzer = &analysis.Analyzer{
 
 var (
 	ddlPath string
+	strict  bool
 )
 
 func init() {
 	Analyzer.Flags.StringVar(&ddlPath, "ddl", "", "ddl file path")
+	Analyzer.Flags.BoolVar(&strict, "strict", false, "enable strict case sensitivity")
 }
 
 func spannerTag(field *ast.Field) string {
@@ -47,7 +49,7 @@ func spannerTag(field *ast.Field) string {
 func run(pass *analysis.Pass) (any, error) {
 	inspect := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
-	ddl, err := loadDDL(ddlPath)
+	ddl, err := loadDDL(ddlPath, strict)
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +70,7 @@ func run(pass *analysis.Pass) (any, error) {
 			return
 		}
 
-		st := NewStruct(typeSpec.Name.Name, typeSpec.Pos())
+		st := NewStruct(typeSpec.Name.Name, typeSpec.Pos(), strict)
 		for _, field := range structType.Fields.List {
 			tag := spannerTag(field)
 			if tag != "" && len(field.Names) != 1 {
@@ -80,7 +82,7 @@ func run(pass *analysis.Pass) (any, error) {
 				if tag != "" {
 					n = tag
 				}
-				st.AddField(NewField(n))
+				st.AddField(NewField(n, strict))
 			}
 		}
 		structs.AddStruct(st)

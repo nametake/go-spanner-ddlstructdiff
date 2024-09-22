@@ -12,16 +12,21 @@ import (
 )
 
 type Column struct {
-	name string
+	name   string
+	strict bool
 }
 
-func NewColumn(name string) *Column {
+func NewColumn(name string, strict bool) *Column {
 	return &Column{
-		name: name,
+		name:   name,
+		strict: strict,
 	}
 }
 
 func (c *Column) Name() string {
+	if c.strict {
+		return c.name
+	}
 	return strings.ToLower(c.name)
 }
 
@@ -30,20 +35,25 @@ func (c *Column) OriginalName() string {
 }
 
 type Table struct {
-	name string
-	s    []*Column
-	m    map[string]*Column
+	name   string
+	strict bool
+	s      []*Column
+	m      map[string]*Column
 }
 
-func NewTable(name string) *Table {
+func NewTable(name string, strict bool) *Table {
 	return &Table{
-		name: name,
-		s:    []*Column{},
-		m:    map[string]*Column{},
+		name:   name,
+		strict: strict,
+		s:      []*Column{},
+		m:      map[string]*Column{},
 	}
 }
 
 func (t *Table) Name() string {
+	if t.strict {
+		return t.name
+	}
 	return strings.ToLower(t.name)
 }
 
@@ -91,7 +101,7 @@ func (d *DDL) AddTable(t *Table) {
 	d.m[t.Name()] = t
 }
 
-func loadDDL(ddlPath string) (*DDL, error) {
+func loadDDL(ddlPath string, strict bool) (*DDL, error) {
 	ddlFile, err := os.Open(ddlPath)
 	if err != nil {
 		return nil, err
@@ -122,9 +132,9 @@ func loadDDL(ddlPath string) (*DDL, error) {
 		if !ok {
 			continue
 		}
-		table := NewTable(ct.Name.Name)
+		table := NewTable(ct.Name.Name, strict)
 		for _, c := range ct.Columns {
-			table.AddColumn(NewColumn(c.Name.Name))
+			table.AddColumn(NewColumn(c.Name.Name, strict))
 		}
 		ddl.AddTable(table)
 	}

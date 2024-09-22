@@ -6,16 +6,21 @@ import (
 )
 
 type Field struct {
-	name string
+	name   string
+	strict bool
 }
 
-func NewField(name string) *Field {
+func NewField(name string, strict bool) *Field {
 	return &Field{
-		name: name,
+		name:   name,
+		strict: strict,
 	}
 }
 
 func (f *Field) Name() string {
+	if f.strict {
+		return f.name
+	}
 	return strings.ToLower(f.name)
 }
 
@@ -24,22 +29,27 @@ func (f *Field) OriginalName() string {
 }
 
 type Struct struct {
-	pos  token.Pos
-	name string
-	s    []*Field
-	m    map[string]*Field
+	name   string
+	pos    token.Pos
+	strict bool
+	s      []*Field
+	m      map[string]*Field
 }
 
-func NewStruct(name string, pos token.Pos) *Struct {
+func NewStruct(name string, pos token.Pos, strict bool) *Struct {
 	return &Struct{
-		name: name,
-		pos:  pos,
-		s:    []*Field{},
-		m:    map[string]*Field{},
+		name:   name,
+		pos:    pos,
+		strict: strict,
+		s:      []*Field{},
+		m:      map[string]*Field{},
 	}
 }
 
 func (s *Struct) Name() string {
+	if s.strict {
+		return s.name
+	}
 	return strings.ToLower(s.name)
 }
 
@@ -85,4 +95,8 @@ func (s Structs) AddStruct(st *Struct) {
 func (s Structs) Struct(name string) (*Struct, bool) {
 	st, ok := s.m[name]
 	return st, ok
+}
+
+func (s Structs) Structs() []*Struct {
+	return s.s
 }
