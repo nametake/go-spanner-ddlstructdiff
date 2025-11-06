@@ -1,6 +1,8 @@
 module github.com/nametake/go-spanner-ddlstructdiff
 
-go 1.25.4
+go 1.24.0
+
+toolchain go1.24.2
 
 require (
 	github.com/cloudspannerecosystem/memefish v0.6.2
