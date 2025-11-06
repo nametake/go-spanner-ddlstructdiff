@@ -132,7 +132,7 @@ func loadDDL(ddlPath string, strict bool) (*DDL, error) {
 		if !ok {
 			continue
 		}
-		table := NewTable(ct.Name.Name, strict)
+		table := NewTable(ct.Name.SQL(), strict)
 		for _, c := range ct.Columns {
 			table.AddColumn(NewColumn(c.Name.Name, strict))
 		}
