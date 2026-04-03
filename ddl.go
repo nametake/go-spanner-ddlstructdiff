@@ -12,8 +12,9 @@ import (
 )
 
 type Column struct {
-	name   string
-	strict bool
+	name    string
+	strict  bool
+	ignored bool
 }
 
 func NewColumn(name string, strict bool) *Column {
@@ -21,6 +22,14 @@ func NewColumn(name string, strict bool) *Column {
 		name:   name,
 		strict: strict,
 	}
+}
+
+func (c *Column) SetIgnored(ignored bool) {
+	c.ignored = ignored
+}
+
+func (c *Column) IsIgnored() bool {
+	return c.ignored
 }
 
 func (c *Column) Name() string {
@@ -35,10 +44,11 @@ func (c *Column) OriginalName() string {
 }
 
 type Table struct {
-	name   string
-	strict bool
-	s      []*Column
-	m      map[string]*Column
+	name    string
+	strict  bool
+	ignored bool
+	s       []*Column
+	m       map[string]*Column
 }
 
 func NewTable(name string, strict bool) *Table {
@@ -48,6 +58,14 @@ func NewTable(name string, strict bool) *Table {
 		s:      []*Column{},
 		m:      map[string]*Column{},
 	}
+}
+
+func (t *Table) SetIgnored(ignored bool) {
+	t.ignored = ignored
+}
+
+func (t *Table) IsIgnored() bool {
+	return t.ignored
 }
 
 func (t *Table) Name() string {
@@ -101,24 +119,56 @@ func (d *DDL) AddTable(t *Table) {
 	d.m[t.Name()] = t
 }
 
+func buildCommentMap(file *token.File) (map[token.Pos][]token.TokenComment, error) {
+	lexer := &memefish.Lexer{File: file}
+	commentMap := make(map[token.Pos][]token.TokenComment)
+	for {
+		if err := lexer.NextToken(); err != nil {
+			return nil, err
+		}
+		if len(lexer.Token.Comments) > 0 {
+			commentMap[lexer.Token.Pos] = lexer.Token.Comments
+		}
+		if lexer.Token.Kind == token.TokenEOF {
+			break
+		}
+	}
+	return commentMap, nil
+}
+
+func hasDDLIgnoreComment(commentMap map[token.Pos][]token.TokenComment, pos token.Pos) bool {
+	comments, ok := commentMap[pos]
+	if !ok {
+		return false
+	}
+	for _, c := range comments {
+		if strings.Contains(c.Raw, "nolint:ddlstructdiff") {
+			return true
+		}
+	}
+	return false
+}
+
 func loadDDL(ddlPath string, strict bool) (*DDL, error) {
 	ddlFile, err := os.Open(ddlPath)
 	if err != nil {
 		return nil, err
 	}
 
-	ddlReader, err := io.ReadAll(ddlFile)
+	ddlBytes, err := io.ReadAll(ddlFile)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read SQL file: %w", err)
 	}
 
-	file := &token.File{
-		Buffer:   string(ddlReader),
-		FilePath: ddlPath,
+	buf := string(ddlBytes)
+
+	commentMap, err := buildCommentMap(&token.File{Buffer: buf, FilePath: ddlPath})
+	if err != nil {
+		return nil, fmt.Errorf("failed to lex DDL: %w", err)
 	}
 
 	p := memefish.Parser{
-		Lexer: &memefish.Lexer{File: file},
+		Lexer: &memefish.Lexer{File: &token.File{Buffer: buf, FilePath: ddlPath}},
 	}
 
 	stmt, err := p.ParseDDLs()
@@ -133,8 +183,15 @@ func loadDDL(ddlPath string, strict bool) (*DDL, error) {
 			continue
 		}
 		table := NewTable(ct.Name.SQL(), strict)
+		if hasDDLIgnoreComment(commentMap, ct.Create) {
+			table.SetIgnored(true)
+		}
 		for _, c := range ct.Columns {
-			table.AddColumn(NewColumn(c.Name.Name, strict))
+			col := NewColumn(c.Name.Name, strict)
+			if hasDDLIgnoreComment(commentMap, c.Name.NamePos) {
+				col.SetIgnored(true)
+			}
+			table.AddColumn(col)
 		}
 		ddl.AddTable(table)
 	}

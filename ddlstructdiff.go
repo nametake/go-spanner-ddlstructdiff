@@ -2,6 +2,7 @@ package ddlstructdiff
 
 import (
 	"go/ast"
+	"go/token"
 	"strings"
 
 	"golang.org/x/tools/go/analysis"
@@ -31,6 +32,18 @@ func init() {
 	Analyzer.Flags.BoolVar(&strict, "strict", false, "enable strict case sensitivity")
 }
 
+func hasIgnoreComment(cg *ast.CommentGroup) bool {
+	if cg == nil {
+		return false
+	}
+	for _, c := range cg.List {
+		if strings.Contains(c.Text, "nolint:ddlstructdiff") {
+			return true
+		}
+	}
+	return false
+}
+
 func spannerTag(field *ast.Field) string {
 	if field.Tag == nil {
 		return ""
@@ -55,40 +68,62 @@ func run(pass *analysis.Pass) (any, error) {
 	}
 
 	nodeFilter := []ast.Node{
-		(*ast.TypeSpec)(nil),
+		(*ast.GenDecl)(nil),
 	}
 
 	structs := NewStructs()
 	inspect.Preorder(nodeFilter, func(n ast.Node) {
-		typeSpec, ok := n.(*ast.TypeSpec)
-		if !ok {
+		genDecl, ok := n.(*ast.GenDecl)
+		if !ok || genDecl.Tok != token.TYPE {
 			return
 		}
 
-		structType, ok := typeSpec.Type.(*ast.StructType)
-		if !ok {
-			return
-		}
+		structIgnored := hasIgnoreComment(genDecl.Doc)
 
-		st := NewStruct(typeSpec.Name.Name, typeSpec.Pos(), strict)
-		for _, field := range structType.Fields.List {
-			tag := spannerTag(field)
-			if tag != "" && len(field.Names) != 1 {
-				pass.Reportf(field.Pos(), "field with spanner tag must have only one name")
+		for _, spec := range genDecl.Specs {
+			typeSpec, ok := spec.(*ast.TypeSpec)
+			if !ok {
 				continue
 			}
-			for _, name := range field.Names {
-				n := name.Name
-				if tag != "" {
-					n = tag
-				}
-				st.AddField(NewField(n, strict))
+
+			structType, ok := typeSpec.Type.(*ast.StructType)
+			if !ok {
+				continue
 			}
+
+			st := NewStruct(typeSpec.Name.Name, typeSpec.Pos(), strict)
+			if structIgnored {
+				st.SetIgnored(true)
+			}
+
+			for _, field := range structType.Fields.List {
+				tag := spannerTag(field)
+				if tag != "" && len(field.Names) != 1 {
+					pass.Reportf(field.Pos(), "field with spanner tag must have only one name")
+					continue
+				}
+				fieldIgnored := hasIgnoreComment(field.Comment)
+				for _, name := range field.Names {
+					n := name.Name
+					if tag != "" {
+						n = tag
+					}
+					f := NewField(n, strict)
+					if fieldIgnored {
+						f.SetIgnored(true)
+					}
+					st.AddField(f)
+				}
+			}
+			structs.AddStruct(st)
 		}
-		structs.AddStruct(st)
 	})
 
 	for _, table := range ddl.Tables() {
+		if table.IsIgnored() {
+			continue
+		}
+
 		st, ok := structs.Struct(table.Name())
 		if !ok {
 			// TODO set option
@@ -96,12 +131,22 @@ func run(pass *analysis.Pass) (any, error) {
 			continue
 		}
 
+		if st.IsIgnored() {
+			continue
+		}
+
 		for _, column := range table.Columns() {
+			if column.IsIgnored() {
+				continue
+			}
 			if _, ok := st.Field(column.Name()); !ok {
 				pass.Reportf(st.Pos(), "%s struct must contain %s field corresponding to DDL", table.OriginalName(), column.OriginalName())
 			}
 		}
 		for _, field := range st.Fields() {
+			if field.IsIgnored() {
+				continue
+			}
 			if _, ok := table.Column(field.Name()); !ok {
 				pass.Reportf(st.Pos(), "%s table does not have a column corresponding to %s", table.OriginalName(), field.OriginalName())
 			}
