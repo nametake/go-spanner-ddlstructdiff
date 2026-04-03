@@ -6,8 +6,9 @@ import (
 )
 
 type Field struct {
-	name   string
-	strict bool
+	name    string
+	strict  bool
+	ignored bool
 }
 
 func NewField(name string, strict bool) *Field {
@@ -15,6 +16,14 @@ func NewField(name string, strict bool) *Field {
 		name:   name,
 		strict: strict,
 	}
+}
+
+func (f *Field) SetIgnored(ignored bool) {
+	f.ignored = ignored
+}
+
+func (f *Field) IsIgnored() bool {
+	return f.ignored
 }
 
 func (f *Field) Name() string {
@@ -29,11 +38,12 @@ func (f *Field) OriginalName() string {
 }
 
 type Struct struct {
-	name   string
-	pos    token.Pos
-	strict bool
-	s      []*Field
-	m      map[string]*Field
+	name    string
+	pos     token.Pos
+	strict  bool
+	ignored bool
+	s       []*Field
+	m       map[string]*Field
 }
 
 func NewStruct(name string, pos token.Pos, strict bool) *Struct {
@@ -44,6 +54,14 @@ func NewStruct(name string, pos token.Pos, strict bool) *Struct {
 		s:      []*Field{},
 		m:      map[string]*Field{},
 	}
+}
+
+func (s *Struct) SetIgnored(ignored bool) {
+	s.ignored = ignored
+}
+
+func (s *Struct) IsIgnored() bool {
+	return s.ignored
 }
 
 func (s *Struct) Name() string {

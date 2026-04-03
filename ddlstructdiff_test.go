@@ -48,6 +48,30 @@ func TestAnalyzer(t *testing.T) {
 			strict:   true,
 			patterns: []string{"lowercasestrict"},
 		},
+		{
+			name:     "ignore",
+			ddl:      "testdata/src/ignore/ddl.sql",
+			strict:   false,
+			patterns: []string{"ignore"},
+		},
+		{
+			name:     "ignorefield",
+			ddl:      "testdata/src/ignorefield/ddl.sql",
+			strict:   false,
+			patterns: []string{"ignorefield"},
+		},
+		{
+			name:     "ignoreddlcolumn",
+			ddl:      "testdata/src/ignoreddlcolumn/ddl.sql",
+			strict:   false,
+			patterns: []string{"ignoreddlcolumn"},
+		},
+		{
+			name:     "ignoreddltable",
+			ddl:      "testdata/src/ignoreddltable/ddl.sql",
+			strict:   false,
+			patterns: []string{"ignoreddltable"},
+		},
 		// TODO: token.NoPos is not supported in analysistest
 		// {
 		// 	name:     "notable",
